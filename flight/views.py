@@ -1,6 +1,9 @@
+# flight/views.py
 from django.shortcuts import render
-from rest_framework import viewsets, mixins
-from rest_framework.utils.representation import serializer_repr
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Prefetch
+from django.utils import timezone
 
 from .models import (
     AirplaneType,
@@ -16,7 +19,18 @@ from .serializers import (
     AirplaneTypeSerializer,
     AirplaneSerializer,
     AirplaneListSerializer,
-    AirplaneDetailListSerializer,
+    AirplaneDetailSerializer,
+    CrewSerializer,
+    AirportSerializer,
+    RouteSerializer,
+    RouteDetailSerializer,
+    FlightSerializer,
+    FlightListSerializer,
+    FlightDetailSerializer,
+    OrderSerializer,
+    OrderListSerializer,
+    OrderDetailSerializer,
+    TicketSerializer,
 )
 
 
@@ -33,6 +47,86 @@ class AirplaneViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return AirplaneListSerializer
         if self.action == "retrieve":
-            return AirplaneDetailListSerializer
+            return AirplaneDetailSerializer
         return AirplaneSerializer
 
+
+class CrewViewSet(viewsets.ModelViewSet):
+    queryset = Crew.objects.all()
+    serializer_class = CrewSerializer
+
+
+class AirportViewSet(viewsets.ModelViewSet):
+    queryset = Airport.objects.all()
+    serializer_class = AirportSerializer
+
+
+class RouteViewSet(viewsets.ModelViewSet):
+    queryset = Route.objects.select_related('source', 'destination')
+    serializer_class = RouteSerializer
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return RouteDetailSerializer
+        return RouteSerializer
+
+
+class FlightViewSet(viewsets.ModelViewSet):
+    queryset = Flight.objects.select_related(
+        'route__source',
+        'route__destination',
+        'airplane__airplane_type'
+    ).prefetch_related('crew')
+    serializer_class = FlightSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return FlightListSerializer
+        if self.action == "retrieve":
+            return FlightDetailSerializer
+        return FlightSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        route_id = self.request.query_params.get('route')
+        if route_id:
+            queryset = queryset.filter(route_id=route_id)
+
+        date = self.request.query_params.get('date')
+        if date:
+            queryset = queryset.filter(departure_time__date=date)
+
+        queryset = queryset.order_by('departure_time')
+
+        return queryset
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Order.objects.all()
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Order.objects.filter(user=self.request.user)
+        return Order.objects.none()
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return OrderListSerializer
+        if self.action == "retrieve":
+            return OrderDetailSerializer
+        return OrderSerializer
+
+
+class TicketViewSet(viewsets.ModelViewSet):
+    serializer_class = TicketSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Ticket.objects.all()
+
+    def get_queryset(self):
+        """Users can only see tickets from their own orders"""
+        if self.request.user.is_authenticated:
+            return Ticket.objects.filter(order__user=self.request.user)
+        return Ticket.objects.none()
