@@ -67,6 +67,21 @@ class RouteSerializer(serializers.ModelSerializer):
         model = Route
         fields = ("id", "source", "destination", "distance", "source_name", "destination_name")
 
+    def validate_distance(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Distance must be greater than 0")
+        if value > 20000:
+            raise serializers.ValidationError("Distance cannot exceed 20,000 km")
+        return value
+
+    def validate(self, data):
+        if data.get('source') and data.get('destination'):
+            if data['source'] == data['destination']:
+                raise serializers.ValidationError(
+                    {"source": "Source and destination airports must be different"}
+                )
+        return data
+
 
 class RouteDetailSerializer(RouteSerializer):
     source = AirportSerializer(read_only=True)
@@ -80,6 +95,24 @@ class FlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flight
         fields = ("id", "route", "airplane", "crew", "departure_time", "arrival_time")
+
+    def validate(self, data):
+        departure_time = data.get('departure_time')
+        arrival_time = data.get('arrival_time')
+
+        if departure_time and arrival_time:
+            if arrival_time <= departure_time:
+                raise serializers.ValidationError(
+                    {"arrival_time": "Arrival time must be after departure time"}
+                )
+
+            flight_duration = arrival_time - departure_time
+            if flight_duration.total_seconds() > 24 * 60 * 60:
+                raise serializers.ValidationError(
+                    {"arrival_time": "Flight duration cannot exceed 24 hours"}
+                )
+
+        return data
 
 
 class FlightListSerializer(FlightSerializer):
