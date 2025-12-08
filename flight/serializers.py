@@ -1,6 +1,4 @@
 from rest_framework import serializers
-from django.db.models import Count
-from django.utils import timezone
 from .models import (
     AirplaneType,
     Airplane,
@@ -23,6 +21,17 @@ class AirplaneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airplane
         fields = ("id", "name", "rows", "seats_in_row", "airplane_type")
+
+    MAXVALUES = {
+        "rows": 1000,
+        "seats_in_row": 12
+    }
+
+    def validate(self, atrs):
+        for key, value in self.MAXVALUES.items():
+            if atrs[key]>value or atrs[key]<0:
+                raise serializers.ValidationError(f"Airplane {key} must be in range 0 to {value}")
+        return atrs
 
 
 class AirplaneListSerializer(AirplaneSerializer):
@@ -196,12 +205,12 @@ class TicketSerializer(serializers.ModelSerializer):
         if flight and 'row' in data and 'seat' in data:
             airplane = flight.airplane
 
-            if data['row'] > airplane.rows:
+            if data['row'] > airplane.rows or data['row'] < 1:
                 raise serializers.ValidationError(
                     f"Row must be between 1 and {airplane.rows}"
                 )
 
-            if data['seat'] > airplane.seats_in_row:
+            if data['seat'] > airplane.seats_in_row or data['seat'] < 1:
                 raise serializers.ValidationError(
                     f"Seat must be between 1 and {airplane.seats_in_row}"
                 )
