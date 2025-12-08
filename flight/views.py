@@ -12,8 +12,11 @@ from .models import (
     Order,
     Ticket
 )
-from serializers import (
+from .serializers import (
     AirplaneTypeSerializer,
+    AirplaneSerializer,
+    AirplaneListSerializer,
+    AirplaneDetailListSerializer,
 )
 
 
@@ -21,4 +24,15 @@ class AirplaneTypeViewSet(viewsets.ModelViewSet):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
 
+
+class AirplaneViewSet(viewsets.ModelViewSet):
+    queryset = Airplane.objects.all().select_related("airplane_type")
+    serializer_class = AirplaneSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return AirplaneListSerializer
+        if self.action == "retrieve":
+            return AirplaneDetailListSerializer
+        return AirplaneSerializer
 

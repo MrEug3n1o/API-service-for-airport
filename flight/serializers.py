@@ -26,7 +26,6 @@ class AirplaneSerializer(serializers.ModelSerializer):
             "rows",
             "seats_in_row",
             "airplane_type",
-            "airplane_type_name"
         )
 
 
@@ -78,3 +77,11 @@ class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight", "order")
+
+
+class AirplaneListSerializer(AirplaneSerializer):
+    airplane_type = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
+
+
+class AirplaneDetailListSerializer(AirplaneSerializer):
+    airplane_type = AirplaneTypeSerializer(many=False, read_only=True)
