@@ -1,6 +1,11 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import RegexValidator
 
+latin_validator = RegexValidator(
+    regex=r'^[A-Za-z]+$',
+    message="Name must contain only Latin letters. No numbers and other symbols"
+)
 
 class AirplaneType(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -30,8 +35,8 @@ class Airplane(models.Model):
 
 
 class Crew(models.Model):
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255, validators=[latin_validator])
+    last_name = models.CharField(max_length=255, validators=[latin_validator])
 
     class Meta:
         ordering = ["last_name", "first_name"]
@@ -41,8 +46,8 @@ class Crew(models.Model):
 
 
 class Airport(models.Model):
-    name = models.CharField(max_length=255)
-    closest_big_city = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, validators=[latin_validator])
+    closest_big_city = models.CharField(max_length=255, validators=[latin_validator])
 
     class Meta:
         ordering = ["name"]
