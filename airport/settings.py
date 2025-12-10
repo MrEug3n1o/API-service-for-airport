@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -77,9 +77,13 @@ WSGI_APPLICATION = 'airport.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "HOST": os.environ.get("POSTGRES_HOST", "db"),
+        "NAME": os.environ.get("POSTGRES_DB", "airport_db"),
+        "USER": os.environ.get("POSTGRES_USER", "airport_user"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "airport_password"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }
 }
 
