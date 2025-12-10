@@ -11,6 +11,7 @@ from .views import (
     TicketViewSet
 )
 
+app_name = "flight"
 
 router = DefaultRouter()
 router.register(r"airplane-types", AirplaneTypeViewSet)
@@ -25,5 +26,3 @@ router.register(r"tickets", TicketViewSet)
 urlpatterns = [
     path("", include(router.urls)),
 ]
-
-app_name = "flight"

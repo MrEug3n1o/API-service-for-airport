@@ -1,7 +1,7 @@
-# flight/views.py
 from django.shortcuts import render
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.authentication import TokenAuthentication
 from django.db.models import Prefetch
 from django.utils import timezone
 
@@ -37,11 +37,13 @@ from .serializers import (
 class AirplaneTypeViewSet(viewsets.ModelViewSet):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
+    permission_classes = (IsAdminUser,)
 
 
 class AirplaneViewSet(viewsets.ModelViewSet):
     queryset = Airplane.objects.all().select_related("airplane_type")
     serializer_class = AirplaneSerializer
+    permission_classes = (IsAdminUser,)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -54,16 +56,19 @@ class AirplaneViewSet(viewsets.ModelViewSet):
 class CrewViewSet(viewsets.ModelViewSet):
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
+    permission_classes = (IsAdminUser,)
 
 
 class AirportViewSet(viewsets.ModelViewSet):
     queryset = Airport.objects.all()
     serializer_class = AirportSerializer
+    permission_classes = (IsAdminUser,)
 
 
 class RouteViewSet(viewsets.ModelViewSet):
     queryset = Route.objects.select_related('source', 'destination')
     serializer_class = RouteSerializer
+    permission_classes = (IsAdminUser,)
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -78,6 +83,14 @@ class FlightViewSet(viewsets.ModelViewSet):
         'airplane__airplane_type'
     ).prefetch_related('crew')
     serializer_class = FlightSerializer
+    permission_classes = (IsAdminUser,)
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -126,7 +139,6 @@ class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
 
     def get_queryset(self):
-        """Users can only see tickets from their own orders"""
         if self.request.user.is_authenticated:
             return Ticket.objects.filter(order__user=self.request.user)
         return Ticket.objects.none()
