@@ -20,7 +20,7 @@ class AirplaneTypeSerializer(serializers.ModelSerializer):
 class AirplaneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airplane
-        fields = ("id", "name", "rows", "seats_in_row", "airplane_type")
+        fields = ("id", "name", "rows", "seats_in_row", "airplane_type", "image")
 
     MAXVALUES = {
         "rows": 1000,
@@ -41,9 +41,6 @@ class AirplaneListSerializer(AirplaneSerializer):
         slug_field="name"
     )
 
-    class Meta(AirplaneSerializer.Meta):
-        fields = ("id", "name", "rows", "seats_in_row", "airplane_type")
-
 
 class AirplaneDetailSerializer(AirplaneSerializer):
     airplane_type = AirplaneTypeSerializer(many=False, read_only=True)
@@ -59,13 +56,13 @@ class AirplaneDetailSerializer(AirplaneSerializer):
 class CrewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Crew
-        fields = ("id", "first_name", "last_name")
+        fields = ("id", "first_name", "last_name", "image")
 
 
 class AirportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airport
-        fields = ("id", "name", "closest_big_city")
+        fields = ("id", "name", "closest_big_city", "image")
 
 
 class RouteSerializer(serializers.ModelSerializer):
@@ -216,3 +213,21 @@ class TicketSerializer(serializers.ModelSerializer):
                 )
 
         return data
+
+
+class AirplaneImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Airplane
+        fields = ("id", "image")
+
+
+class CrewImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Crew
+        fields = ("id", "image")
+
+
+class AirportImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Airport
+        fields = ("id", "image")

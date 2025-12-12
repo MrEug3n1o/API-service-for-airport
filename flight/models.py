@@ -1,6 +1,20 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
+from django.utils.text import slugify
+import uuid
+from pathlib import Path
+
+
+def air_image_upload_path(instance, filename):
+    ext = Path(filename).suffix
+    slug = slugify(instance.name)
+    return f"uploads/airplane/{slug}-{uuid.uuid4()}{ext}"
+
+def crew_image_upload_path(instance, filename):
+    ext = Path(filename).suffix
+    slug = slugify(instance.first_name)
+    return f"uploads/airplane/{slug}-{uuid.uuid4()}{ext}"
 
 latin_validator = RegexValidator(
     regex=r'^[A-Za-z]+$',
@@ -26,6 +40,9 @@ class Airplane(models.Model):
         on_delete=models.CASCADE,
         related_name="airplanes"
     )
+    image = models.ImageField(
+        upload_to=air_image_upload_path, blank=True, null=True
+    )
 
     class Meta:
         ordering = ["name"]
@@ -37,6 +54,9 @@ class Airplane(models.Model):
 class Crew(models.Model):
     first_name = models.CharField(max_length=255, validators=[latin_validator])
     last_name = models.CharField(max_length=255, validators=[latin_validator])
+    image = models.ImageField(
+        upload_to=crew_image_upload_path, blank=True, null=True
+    )
 
     class Meta:
         ordering = ["last_name", "first_name"]
@@ -48,6 +68,9 @@ class Crew(models.Model):
 class Airport(models.Model):
     name = models.CharField(max_length=255, validators=[latin_validator])
     closest_big_city = models.CharField(max_length=255, validators=[latin_validator])
+    image = models.ImageField(
+        upload_to=air_image_upload_path, blank=True, null=True
+    )
 
     class Meta:
         ordering = ["name"]
