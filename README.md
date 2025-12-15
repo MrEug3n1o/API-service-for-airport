@@ -40,6 +40,7 @@ POSTGRES_USER=airport_user
 DB_PASSWORD=your_password
 POSTGRES_PORT=5432
 POSTGRES_HOST=db
+SECRET_KEY=your_secret_key
 ```
 
 ### Run migrations and start server
