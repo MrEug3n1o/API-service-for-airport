@@ -37,6 +37,7 @@ from .serializers import (
     CrewImageSerializer,
     AirportImageSerializer
 )
+from flight.authentification import AdminSessionAuthentication
 
 
 class AirplaneTypeViewSet(viewsets.ModelViewSet):
