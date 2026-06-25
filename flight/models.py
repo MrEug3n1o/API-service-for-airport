@@ -134,7 +134,7 @@ class Order(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Order #{self.id} by {self.user.username} at {self.created_at}"
+        return f"Order #{self.id} by {self.user.email} at {self.created_at}"
 
 
 class Ticket(models.Model):
